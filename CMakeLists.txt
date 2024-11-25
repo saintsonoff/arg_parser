@@ -7,12 +7,17 @@ project(
     LANGUAGES CXX
 )
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# directory envvar
+set(ENV{INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(lib)
 add_subdirectory(bin)
 
+# enable_testing()
+# add_subdirectory(tests)
 
-enable_testing()
-add_subdirectory(tests)
+set(ENV{INCLUDE_DIRS} "")
+set(ENV{LIB_DIR} "")
