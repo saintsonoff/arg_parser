@@ -8,7 +8,7 @@
 #include <string_view>
 #include <iostream>
 
-#include <store.hpp>
+#include <lib/arg_parser/store/store.hpp>
 
 namespace argument_parser {
 
@@ -24,9 +24,16 @@ class Argument {
     std::string_view short_name, std::string_view descriprion);
   Argument(std::string_view full_name, std::string_view descriprion);
   Argument(std::string_view full_name);
+  ~Argument() = default;
 
  public:
   bool convert(std::string_view string_data);
+
+  template<typename ValueType>
+  auto GetData();
+
+  template<typename ValueType>
+  auto GetMultiData();
 
  public:
   template<typename StoreType>
@@ -65,7 +72,28 @@ class Argument {
  public:
   template<typename Type>
   void SetPtrStore(Type* ptr);
+
+  template<typename Type>
+  void SetPtrMultiValueStore(Type* ptr);
 #endif
+};
+
+template<typename ValueType>
+auto Argument::GetData() {
+  if (store_.get()) {
+    return dynamic_cast<Store<ValueType>*>(store_.get())->data_;
+  }
+  return ValueType{};
+};
+
+template<typename ValueType>
+auto Argument::GetMultiData() {
+  std::cout << typeid(*store_).name() << std::endl;
+  std::cout << typeid(MultiValueStore<ValueType>).name() << std::endl;
+  if ( typeid(*store_) == typeid(MultiValueStore<ValueType>)) {
+    return dynamic_cast<MultiValueStore<ValueType>*>(store_.get())->data_;
+  }
+  return ValueType{};
 };
 
 template<typename StoreType>
@@ -96,6 +124,16 @@ void Argument::SetPtrStore(Type* ptr) {
   } else {
     store_ = std::unique_ptr<Store<Type>>();
     dynamic_cast<Store<Type>&>(*store_).ptr_ = ptr;
+  }
+};
+
+template<typename Type>
+void Argument::SetPtrMultiValueStore(Type* ptr) {
+  if (store_.get()) {
+    dynamic_cast<MultiValueStore<Type>&>(*store_).ptr_ = ptr;
+  } else {
+    store_ = std::unique_ptr<MultiValueStore<Type>>();
+    dynamic_cast<MultiValueStore<Type>&>(*store_).ptr_ = ptr;
   }
 };
 #endif

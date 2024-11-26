@@ -7,4 +7,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   arg_parser
   argument
   store
+  labwork_adapter
 )

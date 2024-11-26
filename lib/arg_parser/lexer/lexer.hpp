@@ -119,7 +119,11 @@ void PushBackLexeme(LexerDevice::LexemContType& cont,
       std::string_view(begin_itr, end_itr)));
 };
 
-bool IsNumber(std::string short_argument_prefix);
+bool IsNumber(std::string_view short_argument) {
+  if (short_argument.size() > 1 && (short_argument[1] >= '0' && short_argument[1] <= '9'))
+    return true;
+  return false;
+};
 
 } // namespace
 
@@ -136,7 +140,7 @@ void LexerDevice::Lexing(InItr argv_begin, InItr argv_end) {
         arg.begin() + full_argument_prefix.size(),
         arg.end());
     } else if (arg.starts_with(short_argument_prefix) &&
-      IsNumber({short_argument_prefix.begin(), short_argument_prefix.end()})) {
+      !IsNumber(arg)) {
       PushBackLexeme<lexeme::ShortName>(lexemes_cont_,
         arg.begin() + short_argument_prefix.size(),
         arg.end());

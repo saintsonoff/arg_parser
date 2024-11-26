@@ -8,19 +8,6 @@
 
 namespace argument_parser {
 
-namespace {
-
-bool IsNumber(std::string short_argument_prefix) {
-  std::stringstream strstr(short_argument_prefix);
-  double buff;
-  strstr >> buff;
-  if (strstr.fail())
-    return false;
-  return true;
-};
-
-} // namespace
-
 namespace lexeme {
 
 Lexeme::Lexeme(std::string_view value) : value_(value) {  };

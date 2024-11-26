@@ -14,10 +14,12 @@
 
 // #define DEFAULT_MAIN
 #ifndef DEFAULT_MAIN
+#include <ArgParser.hpp>
 
 int main(int argc, char** argv) {
+  
 
-#define CORRECT_INPUT
+// #define CORRECT_INPUT
 #ifndef CORRECT_INPUT
   std::vector<std::string_view> argv_test = {
     "name_of_prog",
@@ -42,6 +44,21 @@ int main(int argc, char** argv) {
     "--store_arg", "30",
   };
 #endif
+
+
+  ArgumentParser::ArgParserLabwork parser_labwork("Program");
+  parser_labwork.AddStringArgument("str").MultiValue<std::string>(1).Positional();
+  std::vector<std::string> argv_string_cont = {
+        // "--str=privet_mir",
+    "privet_mir",
+    "hello",
+    "world",
+  };
+
+  parser_labwork.Parse(argv_string_cont);
+
+  decltype(auto) res_cont = parser_labwork.GetStringValues("str");
+
   argument_parser::ArgParser parser_device;
 
   argument_parser::Argument arg("store_arg");
@@ -67,7 +84,7 @@ int main(int argc, char** argv) {
 #else 
 
 #include <functional>
-#include <arg_parser/arg_parser.h>
+#include <ArgParser.hpp>
 // #include <lib/arg_parser/arg_parser.h>
 
 #include <iostream>
@@ -82,8 +99,8 @@ int main(int argc, char** argv) {
   Options opt;
   std::vector<int> values;
 
-  ArgumentParser::ArgParser parser("Program");
-  parser.AddIntArgument("N").MultiValue(1).Positional().StoreValues(values);
+  ArgumentParser::ArgParserLabwork parser("Program");
+  parser.AddIntArgument("N").MultiValue<int>(1).Positional().StoreValues(values);
   parser.AddFlag("sum", "add args").StoreValue(opt.sum);
   parser.AddFlag("mult", "multiply args").StoreValue(opt.mult);
   parser.AddHelp('h', "help", "Program accumulate arguments");
@@ -99,6 +116,7 @@ int main(int argc, char** argv) {
     return 0;
   }
 
+/*
   if(opt.sum) {
     std::cout << "Result: " << std::accumulate(values.begin(), values.end(), 0) << std::endl;
   } else if(opt.mult) {
@@ -108,7 +126,7 @@ int main(int argc, char** argv) {
     std::cout << parser.HelpDescription();
     return 1;
   }
-
+*/
   return 0;
 }
 

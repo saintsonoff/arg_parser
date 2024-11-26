@@ -6,7 +6,7 @@
 #include <vector>
 #include <string_view>
 
-#include <argument.hpp>
+#include <lib/arg_parser/argument/argument.hpp>
 
 namespace argument_parser {
 
@@ -17,9 +17,36 @@ class ArgParser {
 
   bool parse(std::vector<std::string_view>& argv);
 
+  template<typename ValueType>
+  auto GetValue(std::string_view arg_name);
+
+  template<typename ValueType>
+  auto GetMultiValue(std::string_view arg_name);
+
  private:
   std::vector<Argument> args_;
 };
+
+template<typename ValueType>
+auto ArgParser::GetValue(std::string_view arg_name) {
+  for (auto&& elem : args_) {
+    if (elem.GetFullName() == arg_name ||
+        elem.GetShortName() == arg_name)
+      return elem.GetData<ValueType>();
+  }
+  return ValueType{};
+};
+
+template<typename ValueType>
+auto ArgParser::GetMultiValue(std::string_view arg_name) {
+  for (auto&& elem : args_) {
+    if (elem.GetFullName() == arg_name ||
+        elem.GetShortName() == arg_name)
+      return elem.GetMultiData<ValueType>();
+  }
+  return ValueType{};
+};
+
 
 template<typename... ArgumentType>
 void ArgParser::registrate(ArgumentType&&... args) {
