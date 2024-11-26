@@ -129,7 +129,7 @@ bool ArgParserLabwork::Parse(const std::vector<std::string>& argv) {
   }
 
   std::vector<std::string_view> argv_sv_cont;
-  std::for_each(std::begin(argv), std::end(argv), [&argv_sv_cont](const std::string& elem){
+  std::for_each(std::begin(argv) + 1, std::end(argv), [&argv_sv_cont](const std::string& elem){
     argv_sv_cont.push_back(elem);
   });
 

@@ -56,7 +56,7 @@ void ParserDevice::Run(std::vector<Argument>& args,
 
 #if LABA4
   for (auto&& arg : args) {
-    if (arg.IsMultivalue() && arg.min_val < arg.GetStoreCount()) {
+    if (arg.IsMultivalue() && arg.min_val > arg.GetStoreCount()) {
       std::string error_message = "parse fail, minimal count of multivalue not found arg\n   full name: ";
       error_message += arg.GetFullName();
       error_message += "\n   short name: ";
