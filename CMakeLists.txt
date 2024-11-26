@@ -9,6 +9,7 @@ project(
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_compile_definitions(LABA4)
 
 # directory envvar
 set(ENV{INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR})

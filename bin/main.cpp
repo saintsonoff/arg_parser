@@ -32,27 +32,36 @@ int main(int argc, char** argv) {
 #else
   std::vector<std::string_view> argv_test = {
     "name_of_prog",
-    "--integer=493",
+    "--integer=0", "-1", "2", "3", "4",
     "--flag",
-    "--str=privet_mir",
+    // "--str=privet_mir",
+    "privet_mir",
+    "hello",
+    "world",
     "--dbl", "30.239",
+    "--store_arg", "30",
   };
 #endif
   argument_parser::ArgParser parser_device;
 
-  argument_parser::Argument arg;
+  argument_parser::Argument arg("store_arg");
   arg.SetStore<int>(nullptr);
-  arg.SetStore(new argument_parser::Store<std::string>());
+  arg.SetStore(new argument_parser::Store<int>());
 
-  auto argument_value = argument_parser::make_argument<int>("--integer");
+  arg.SetPtrStore(new int{4});
 
   parser_device.registrate(
-    argument_parser::make_argument<int>("integer").SetStore(new argument_parser::Store<int>()),
+    argument_parser::make_argument<std::vector<int>>("integer").SetMultiValueStore(new argument_parser::MultiValueStore<std::vector<int>>()),
     argument_parser::make_argument<bool>("flag").SetStore(new argument_parser::Store<bool>()),
-    argument_parser::make_argument<std::string>("str").SetStore(new argument_parser::Store<std::string>()),
-    argument_parser::make_argument<double>("dbl").SetStore(new argument_parser::Store<double>())
+    argument_parser::make_argument<std::string>("str").SetMultiValueStore(new argument_parser::MultiValueStore<std::vector<std::string>>()).Positional(),
+    argument_parser::make_argument<double>("dbl").SetStore(new argument_parser::Store<double>()),
+    arg
   );
-  parser_device.parse(argv_test);
+
+  if (parser_device.parse(argv_test))
+    std::cout << "main:   PARSING SUCCESSFULLY" << std::endl;
+  else 
+    std::cout << "main:   PARSING FAIL" << std::endl;
   return 0;
 }
 #else 

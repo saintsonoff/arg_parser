@@ -1,11 +1,16 @@
+#include "store.hpp"
 #include <argument.hpp>
+#include <iterator>
 #include <memory>
+
+#include <lexer/lexer.hpp>
 
 namespace argument_parser {
 
 Argument::Argument(std::string_view full_name,
   std::string_view short_name, std::string_view descriprion) :
-     full_name_(full_name), short_name_(short_name), descriprion_(descriprion), store_(nullptr) {  };
+    full_name_(full_name), short_name_(short_name), descriprion_(descriprion),
+    store_(nullptr), is_found_(FoundClasses::NOT_FOUND) {  };
 
 Argument::Argument(std::string_view full_name, std::string_view descriprion) :
   Argument(full_name, "", descriprion) {  };
@@ -31,5 +36,10 @@ Argument& Argument::operator=(Argument&& value) {
 
   return *this;
 }
+
+bool Argument::convert(std::string_view string_data) {
+  is_found_ = FoundClasses::WAS_INITIALIZE;
+  return store_->string_to_data({string_data.begin(), string_data.end()});
+};
 
 } // argument_parser

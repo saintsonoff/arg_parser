@@ -18,8 +18,8 @@ namespace lexeme {
 
   struct Lexeme {
     Lexeme(std::string_view value);
-    virtual Lexeme* GetOwner();
-    virtual void SetOwner(Lexeme* new_owner_ptr);
+    virtual std::shared_ptr<Lexeme> GetOwner();
+    virtual void SetOwner(std::shared_ptr<Lexeme> new_owner_ptr);
     virtual ~Lexeme() = 0;
     std::string_view value_;
   };
@@ -27,9 +27,9 @@ namespace lexeme {
   struct Value : public Lexeme {
     Value(std::string_view value);
     ~Value() override = default;
-    Lexeme* GetOwner() override;
-    void SetOwner(Lexeme* new_owner_ptr) override;
-    Lexeme* owner_ptr = nullptr;
+    std::shared_ptr<Lexeme> GetOwner() override;
+    void SetOwner(std::shared_ptr<Lexeme> new_owner_ptr) override;
+    std::shared_ptr<Lexeme> owner_ptr = nullptr;
   };
 
   struct FullName : public Lexeme {
@@ -119,7 +119,10 @@ void PushBackLexeme(LexerDevice::LexemContType& cont,
       std::string_view(begin_itr, end_itr)));
 };
 
+bool IsNumber(std::string short_argument_prefix);
+
 } // namespace
+
 
 template<std::input_iterator InItr>
 void LexerDevice::Lexing(InItr argv_begin, InItr argv_end) {
@@ -128,11 +131,12 @@ void LexerDevice::Lexing(InItr argv_begin, InItr argv_end) {
 
   for (;argv_begin != argv_end; ++argv_begin) {
     auto& arg = *argv_begin;
-    if (arg.contains(full_argument_prefix)) {
+    if (arg.starts_with(full_argument_prefix)) {
       PushBackLexeme<lexeme::FullName>(lexemes_cont_,
         arg.begin() + full_argument_prefix.size(),
         arg.end());
-    } else if (arg.contains(short_argument_prefix)) {
+    } else if (arg.starts_with(short_argument_prefix) &&
+      IsNumber({short_argument_prefix.begin(), short_argument_prefix.end()})) {
       PushBackLexeme<lexeme::ShortName>(lexemes_cont_,
         arg.begin() + short_argument_prefix.size(),
         arg.end());
@@ -156,11 +160,20 @@ SearchArgStatus IsContainLexeme(InItr begin_itr, InItr end_itr, lexeme::Lexeme& 
   if constexpr (std::is_same_v<NameType, lexeme::ShortName>) { // instance by short argname
     if (auto res_itr = std::find_if(begin_itr, end_itr,
       [&arg_lexeme](std::iterator_traits<decltype(begin_itr)>::reference arg) {
-        if (arg_lexeme.value_ == arg.GetShortName())
+        if (arg_lexeme.value_ == arg.GetShortName()) {
+          arg.WasFound();
           return true;
-        return false;
+        } else {
+          return false;
+        }
     }); res_itr != end_itr) {
       if (typeid(*(res_itr->GetStorePtr())) == typeid(Store<bool>&)) {
+        std::for_each(begin_itr, end_itr,
+          [&arg_lexeme](std::iterator_traits<decltype(begin_itr)>::reference arg) {
+          if (arg_lexeme.value_ == arg.GetShortName())
+            arg.convert("1");
+        });
+
         return SearchArgStatus::FLAG;
       }
       if (res_itr->IsMultivalue() && res_itr->IsPositional()) {
@@ -178,11 +191,19 @@ SearchArgStatus IsContainLexeme(InItr begin_itr, InItr end_itr, lexeme::Lexeme& 
   } else if constexpr (std::is_same_v<NameType, lexeme::FullName>) { // instance by full argname
     if (auto res_itr = std::find_if(begin_itr, end_itr,
       [&arg_lexeme](std::iterator_traits<decltype(begin_itr)>::reference arg) {
-        if (arg_lexeme.value_ == arg.GetFullName())
+        if (arg_lexeme.value_ == arg.GetFullName()) {
+          arg.WasFound();
           return true;
-        return false;
+        } else {
+          return false;
+        }
     }); res_itr != end_itr) {
       if (typeid(*(res_itr->GetStorePtr())) == typeid(Store<bool>&)) {
+        std::for_each(begin_itr, end_itr,
+          [&arg_lexeme](std::iterator_traits<decltype(begin_itr)>::reference arg) {
+          if (arg_lexeme.value_ == arg.GetFullName())
+            arg.convert("1");
+        });
         return SearchArgStatus::FLAG;
       }
       if (res_itr->IsMultivalue() && res_itr->IsPositional()) {
@@ -228,19 +249,19 @@ SearchArgStatus CheckStatus(InItr begin_itr, InItr end_itr, lexeme::Lexeme& arg_
   return SearchArgStatus::NOT_FOUND;
 };
 
-template<std::input_iterator InItr>
-auto SetOwnerToRange(InItr begin_itr, InItr end_itr, lexeme::Lexeme* owner) {
+template<std::random_access_iterator RAItr>
+auto SetOwnerToRange(RAItr begin_itr, RAItr end_itr, std::shared_ptr<lexeme::Lexeme> owner) {
   for (;begin_itr != end_itr; ++begin_itr) {
-    if (typeid(*begin_itr) != typeid(lexeme::Value))
+    if (typeid(**begin_itr) != typeid(lexeme::Value))
       break;
-  
+
     (*begin_itr)->SetOwner(owner);
   }
-  return begin_itr;
+  return --begin_itr;
 };
 
 template<std::input_iterator InItr>
-auto SetOwner(InItr begin_itr, InItr end_itr, lexeme::Lexeme* owner) {
+auto SetOwnerByItr(InItr begin_itr, InItr end_itr, std::shared_ptr<lexeme::Lexeme> owner) {
   if (begin_itr != end_itr) {
     (*begin_itr)->SetOwner(owner);
   }
@@ -253,24 +274,27 @@ template<is_arg_cont_itr InItr>
 void LexerDevice::SemanticLexing(InItr arguments_begin, InItr arguments_end) {
   for (auto begin_itr = std::begin(lexemes_cont_), end_itr = std::end(lexemes_cont_);
     begin_itr != end_itr; ++begin_itr) {
+
     auto status = CheckStatus(arguments_begin, arguments_end, **begin_itr);
-    if (status == SearchArgStatus::NOT_FOUND) {
+    if (status == SearchArgStatus::FLAG) {
+      // begin_itr->WasFound();
     } else if (status == SearchArgStatus::MULTIVALUE) {
-      begin_itr = SetOwnerToRange(begin_itr + 1, end_itr, begin_itr->get());
+      begin_itr = SetOwnerToRange(begin_itr + 1, end_itr, *begin_itr);
     } else if (status == SearchArgStatus::UNITVALUE) {
-      begin_itr = SetOwner(begin_itr + 1, end_itr, begin_itr->get());
+      begin_itr = SetOwnerByItr(begin_itr + 1, end_itr, *begin_itr);
     }
   }
 
   LexemContType position_candidats_cont;
   LexemContType clear_lexemes_cont;
   for (auto&& elem : lexemes_cont_) {
-    if (typeid(*elem) == typeid(lexeme::Value) &&
-      !elem->GetOwner()) {
-      position_candidats_cont.push_back(elem);
-    } else {
-      clear_lexemes_cont.push_back(elem);
-    };
+    if (typeid(*elem) == typeid(lexeme::Value)) {
+      if(elem->GetOwner()) {
+        clear_lexemes_cont.push_back(elem);
+      } else {
+        position_candidats_cont.push_back(elem);
+      }
+    }
   }
 
   lexemes_cont_ = clear_lexemes_cont;

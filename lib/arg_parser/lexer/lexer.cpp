@@ -1,26 +1,41 @@
+#include "lexer.hpp"
 #include <lexer.hpp>
 
 #include <iterator>
+#include <memory>
 #include <string_view>
 #include <vector>
 
 namespace argument_parser {
 
+namespace {
+
+bool IsNumber(std::string short_argument_prefix) {
+  std::stringstream strstr(short_argument_prefix);
+  double buff;
+  strstr >> buff;
+  if (strstr.fail())
+    return false;
+  return true;
+};
+
+} // namespace
+
 namespace lexeme {
 
 Lexeme::Lexeme(std::string_view value) : value_(value) {  };
 
-Lexeme* Lexeme::GetOwner() { return nullptr; };
+std::shared_ptr<lexeme::Lexeme> Lexeme::GetOwner() { return nullptr; };
 
-void Lexeme::SetOwner(Lexeme* new_owner_ptr) {  };
+void Lexeme::SetOwner(std::shared_ptr<lexeme::Lexeme> new_owner_ptr) {  };
 
 Lexeme::~Lexeme() {  };
 
 Value::Value(std::string_view value) : Lexeme(value) {  };
 
-Lexeme* Value::GetOwner() { return owner_ptr; };
+std::shared_ptr<lexeme::Lexeme> Value::GetOwner() { return owner_ptr; };
 
-void Value::SetOwner(Lexeme* new_owner_ptr) { owner_ptr = new_owner_ptr; };
+void Value::SetOwner(std::shared_ptr<lexeme::Lexeme> new_owner_ptr) { owner_ptr = std::shared_ptr<Lexeme>(new_owner_ptr); };
 
 FullName::FullName(std::string_view value) : Lexeme(value) {  };
 
