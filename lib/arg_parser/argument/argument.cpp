@@ -20,7 +20,7 @@ Argument::Argument(std::string_view full_name) :
 
 Argument::Argument(Argument&& value) :
   full_name_(value.full_name_), short_name_(value.short_name_), descriprion_(value.descriprion_),
-  is_multivalue_(value.is_multivalue_), is_positional_(value.is_positional_),
+  is_multivalue_(value.is_multivalue_), is_positional_(value.is_positional_), is_found_(value.is_found_),
   store_(std::move(value.store_)) {  };
 
 Argument& Argument::operator=(Argument&& value) {

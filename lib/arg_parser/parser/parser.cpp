@@ -32,7 +32,7 @@ void ParserDevice::Run(std::vector<Argument>& args,
         if (lexeme->GetOwner()->value_ == arg.GetFullName() ||
             lexeme->GetOwner()->value_ == arg.GetShortName()) {
           bool is_parse = arg.convert(lexeme->value_);
-          if (!is_parse) {
+          if (!is_parse && arg.GetStatus() == Argument::NOT_FOUND) {
             std::string error_message = "parse fail, cannot convert arg\n   from value: ";
             error_message += lexeme->value_;
             error_message += "\n   to argument: ";
@@ -53,6 +53,18 @@ void ParserDevice::Run(std::vector<Argument>& args,
       throw std::runtime_error(error_message);
     }
   }
+
+#if LABA4
+  for (auto&& arg : args) {
+    if (arg.IsMultivalue() && arg.min_val < arg.GetStoreCount()) {
+      std::string error_message = "parse fail, minimal count of multivalue not found arg\n   full name: ";
+      error_message += arg.GetFullName();
+      error_message += "\n   short name: ";
+      error_message += arg.GetShortName();
+      throw std::runtime_error(error_message);
+    }
+  }
+#endif // LABA4
 };
 
 }

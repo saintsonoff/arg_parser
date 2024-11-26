@@ -25,6 +25,9 @@ concept IsContainer =
 class BaseStore {
  public:
   virtual ~BaseStore() = 0;
+#if LABA4
+  virtual std::size_t GetCountOfData() const { return 0; };
+#endif
   virtual bool string_to_data(const std::string& str_data) = 0;
 };
 
@@ -32,6 +35,8 @@ template<typename StorageType>
 class Store : public BaseStore {
  public:
   Store() = default;
+  Store(const StorageType& data) : data_(data) {  };
+  Store(StorageType&& data) : data_(std::move(data)) {  };
   Store(const Store& value) = default;
   Store(Store&& value);
   Store& operator=(Store&& value);
@@ -58,6 +63,9 @@ class MultiValueStore : public BaseStore {
 
  public:
   bool string_to_data(const std::string& str_data) override;
+#if LABA4
+  std::size_t GetCountOfData() const override { return data_.size(); };
+#endif
 
  public:
   StorageType data_;

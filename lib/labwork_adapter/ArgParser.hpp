@@ -41,7 +41,9 @@ class ArgumentLabwork {
 
 template<typename Type>
 ArgumentLabwork& ArgumentLabwork::Default(Type&& default_value) {
-  arg_.SetStore(new argument_parser::Store<Type>{default_value});
+  arg_.SetStore(new argument_parser::Store<Type>{std::move(default_value)});
+  // arg_.WasFound();
+  arg_.WasInitialize();
   return *this;
 };
 
@@ -61,7 +63,7 @@ ArgumentLabwork& ArgumentLabwork::StoreValues(Type&& store_ptr) {
 
 template<typename Type>
 ArgumentLabwork& ArgumentLabwork::MultiValue(int count) {
-  arg_.SetMultiValueStore(new argument_parser::MultiValueStore<std::vector<Type>>());
+  arg_.SetMultiValueStore(new argument_parser::MultiValueStore<std::vector<Type>>()).min_val = count;
   return *this;
 };
 
@@ -76,6 +78,7 @@ class ArgParserLabwork {
   ArgumentLabwork& AddIntArgument(char short_name, std::string_view full_name);
   ArgumentLabwork& AddIntArgument(char short_name, std::string_view full_name, std::string_view descriprion);
   int GetIntValue(std::string_view name);
+  int GetIntValue(std::string_view name, std::size_t ind);
   std::vector<int> GetIntValues(std::string_view name);
 
   ArgumentLabwork& AddStringArgument(std::string_view full_name);
@@ -83,6 +86,7 @@ class ArgParserLabwork {
   ArgumentLabwork& AddStringArgument(char short_name, std::string_view full_name);
   ArgumentLabwork& AddStringArgument(char short_name, std::string_view full_name, std::string_view descriprion);
   std::string GetStringValue(std::string_view name);
+  std::string GetStringValue(std::string_view name, std::size_t ind);
   std::vector<std::string> GetStringValues(std::string_view name);
 
   ArgumentLabwork& AddFlag(std::string_view full_name);

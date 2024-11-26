@@ -1,3 +1,4 @@
+#include "ArgParser.hpp"
 #include <ArgParser.hpp>
 
 #include <memory> 
@@ -147,9 +148,18 @@ std::vector<std::string> ArgParserLabwork::GetStringValues(std::string_view name
   return arg_parser_device_.GetMultiValue<std::vector<std::string>>(name);
 };
 
+std::string ArgParserLabwork::GetStringValue(std::string_view name, std::size_t ind) {
+  return (arg_parser_device_.GetMultiValue<std::vector<std::string>>(name))[ind];
+};
+
 int ArgParserLabwork::GetIntValue(std::string_view name) {
   return arg_parser_device_.GetValue<int>(name);
 };
+
+int ArgParserLabwork::GetIntValue(std::string_view name, std::size_t ind) {
+  return (arg_parser_device_.GetMultiValue<std::vector<int>>(name))[ind];
+};
+
 std::vector<int> ArgParserLabwork::GetIntValues(std::string_view name) {
   return arg_parser_device_.GetMultiValue<std::vector<int>>(name);
 };

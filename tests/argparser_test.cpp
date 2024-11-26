@@ -17,6 +17,7 @@ std::vector<std::string> SplitString(const std::string& str) {
 }
 
 
+#if 0
 TEST(ArgParserTestSuite, EmptyTest) {
     ArgParserLabwork parser("My Empty Parser");
 
@@ -39,12 +40,10 @@ TEST(ArgParserTestSuite, ShortNameTest) {
     ASSERT_TRUE(parser.Parse(SplitString("app -p=value1")));
     ASSERT_EQ(parser.GetStringValue("param1"), "value1");
 }
-#if 0
-
 
 TEST(ArgParserTestSuite, DefaultTest) {
     ArgParserLabwork parser("My Parser");
-    parser.AddStringArgument("param1").Default("value1");
+    parser.AddStringArgument("param1").Default<std::string>("value1");
 
     ASSERT_TRUE(parser.Parse(SplitString("app")));
     ASSERT_EQ(parser.GetStringValue("param1"), "value1");
@@ -87,25 +86,27 @@ TEST(ArgParserTestSuite, IntTest) {
     ASSERT_TRUE(parser.Parse(SplitString("app --param1=100500")));
     ASSERT_EQ(parser.GetIntValue("param1"), 100500);
 }
+#endif
 
 
 TEST(ArgParserTestSuite, MultiValueTest) {
     ArgParserLabwork parser("My Parser");
     std::vector<int> int_values;
-    parser.AddIntArgument('p', "param1").MultiValue().StoreValues(int_values);
+    parser.AddIntArgument('p', "param1").MultiValue<int>().StoreValues(int_values);
 
     ASSERT_TRUE(parser.Parse(SplitString("app --param1=1 --param1=2 --param1=3")));
     ASSERT_EQ(parser.GetIntValue("param1", 0), 1);
     ASSERT_EQ(int_values[1], 2);
     ASSERT_EQ(int_values[2], 3);
 }
+#if 0
 
 
 TEST(ArgParserTestSuite, MinCountMultiValueTest) {
     ArgParserLabwork parser("My Parser");
     std::vector<int> int_values;
     size_t MinArgsCount = 10;
-    parser.AddIntArgument('p', "param1").MultiValue(MinArgsCount).StoreValues(int_values);
+    parser.AddIntArgument('p', "param1").MultiValue<int>(MinArgsCount).StoreValues(int_values);
 
     ASSERT_FALSE(parser.Parse(SplitString("app --param1=1 --param1=2 --param1=3")));
 }

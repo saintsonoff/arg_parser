@@ -46,6 +46,7 @@ class Argument {
 
 
   inline void WasFound() { is_found_ = FoundClasses::WAS_FOUND; };
+  inline void WasInitialize() { is_found_ = FoundClasses::WAS_INITIALIZE; };
   inline Argument& Positional() {
     is_positional_ = true;
     return *this;
@@ -70,6 +71,10 @@ class Argument {
   std::unique_ptr<BaseStore> store_ = nullptr;
 #ifdef LABA4
  public:
+  std::size_t min_val = 0;
+
+  inline std::size_t GetStoreCount() { return store_->GetCountOfData(); };
+
   template<typename Type>
   void SetPtrStore(Type* ptr);
 
