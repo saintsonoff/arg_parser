@@ -1,3 +1,4 @@
+#include "argument.hpp"
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -6,14 +7,55 @@
 #include <array>
 #include <vector>
 
+#include <arg_parser.hpp>
+#include <argument.hpp>
+#include <store.hpp>
 // #include <arg_parser/arg_parser.h>
 
 // #define DEFAULT_MAIN
 #ifndef DEFAULT_MAIN
 
 int main(int argc, char** argv) {
-};
+
+#define CORRECT_INPUT
+#ifndef CORRECT_INPUT
+  std::vector<std::string_view> argv_test = {
+    "name_of_prog",
+    "--flag=493",
+    "-f=fsdfsdf",
+    "-flag", "4",
+    "-bbbb=true",
+    "-bool_flag",
+    "--abcdefg", "111111111",
+    "12234234234234"
+  };
 #else
+  std::vector<std::string_view> argv_test = {
+    "name_of_prog",
+    "--integer=493",
+    "--flag",
+    "--str=privet_mir",
+    "--dbl", "30.239",
+  };
+#endif
+  argument_parser::ArgParser parser_device;
+
+  argument_parser::Argument arg;
+  arg.SetStore<int>(nullptr);
+  arg.SetStore(new argument_parser::Store<std::string>());
+
+  auto argument_value = argument_parser::make_argument<int>("--integer");
+
+  parser_device.registrate(
+    argument_parser::make_argument<int>("integer").SetStore(new argument_parser::Store<int>()),
+    argument_parser::make_argument<bool>("flag").SetStore(new argument_parser::Store<bool>()),
+    argument_parser::make_argument<std::string>("str").SetStore(new argument_parser::Store<std::string>()),
+    argument_parser::make_argument<double>("dbl").SetStore(new argument_parser::Store<double>())
+  );
+  parser_device.parse(argv_test);
+  return 0;
+}
+#else 
 
 #include <functional>
 #include <arg_parser/arg_parser.h>
