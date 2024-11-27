@@ -2,7 +2,7 @@
 #include <fstream>
 
 #include <gtest/gtest.h>
-#include <lib/ArgParser.h>
+#include <lib/labwork_adapter/ArgParser.hpp>
 
 using namespace ArgumentParser;
 
@@ -15,36 +15,35 @@ std::vector<std::string> SplitString(const std::string& str) {
 
     return {std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>()};
 }
-
+// #define BANED_TEST
+#ifndef BANED_TEST
 
 TEST(ArgParserTestSuite, EmptyTest) {
-    ArgParser parser("My Empty Parser");
+    ArgParserLabwork parser("My Empty Parser");
 
     ASSERT_TRUE(parser.Parse(SplitString("app")));
 }
 
 
 TEST(ArgParserTestSuite, StringTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     parser.AddStringArgument("param1");
 
     ASSERT_TRUE(parser.Parse(SplitString("app --param1=value1")));
     ASSERT_EQ(parser.GetStringValue("param1"), "value1");
 }
 
-
 TEST(ArgParserTestSuite, ShortNameTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     parser.AddStringArgument('p', "param1");
 
     ASSERT_TRUE(parser.Parse(SplitString("app -p=value1")));
     ASSERT_EQ(parser.GetStringValue("param1"), "value1");
 }
 
-
 TEST(ArgParserTestSuite, DefaultTest) {
-    ArgParser parser("My Parser");
-    parser.AddStringArgument("param1").Default("value1");
+    ArgParserLabwork parser("My Parser");
+    parser.AddStringArgument("param1").Default<std::string>("value1");
 
     ASSERT_TRUE(parser.Parse(SplitString("app")));
     ASSERT_EQ(parser.GetStringValue("param1"), "value1");
@@ -52,7 +51,7 @@ TEST(ArgParserTestSuite, DefaultTest) {
 
 
 TEST(ArgParserTestSuite, NoDefaultTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     parser.AddStringArgument("param1");
 
     ASSERT_FALSE(parser.Parse(SplitString("app")));
@@ -60,7 +59,7 @@ TEST(ArgParserTestSuite, NoDefaultTest) {
 
 
 TEST(ArgParserTestSuite, StoreValueTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     std::string value;
     parser.AddStringArgument("param1").StoreValue(value);
 
@@ -70,7 +69,7 @@ TEST(ArgParserTestSuite, StoreValueTest) {
 
 
 TEST(ArgParserTestSuite, MultiStringTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     std::string value;
     parser.AddStringArgument("param1").StoreValue(value);
     parser.AddStringArgument('a', "param2");
@@ -81,7 +80,7 @@ TEST(ArgParserTestSuite, MultiStringTest) {
 
 
 TEST(ArgParserTestSuite, IntTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     parser.AddIntArgument("param1");
 
     ASSERT_TRUE(parser.Parse(SplitString("app --param1=100500")));
@@ -90,9 +89,9 @@ TEST(ArgParserTestSuite, IntTest) {
 
 
 TEST(ArgParserTestSuite, MultiValueTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     std::vector<int> int_values;
-    parser.AddIntArgument('p', "param1").MultiValue().StoreValues(int_values);
+    parser.AddIntArgument('p', "param1").MultiValue<int>().StoreValues(int_values);
 
     ASSERT_TRUE(parser.Parse(SplitString("app --param1=1 --param1=2 --param1=3")));
     ASSERT_EQ(parser.GetIntValue("param1", 0), 1);
@@ -102,17 +101,17 @@ TEST(ArgParserTestSuite, MultiValueTest) {
 
 
 TEST(ArgParserTestSuite, MinCountMultiValueTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     std::vector<int> int_values;
     size_t MinArgsCount = 10;
-    parser.AddIntArgument('p', "param1").MultiValue(MinArgsCount).StoreValues(int_values);
+    parser.AddIntArgument('p', "param1").MultiValue<int>(MinArgsCount).StoreValues(int_values);
 
     ASSERT_FALSE(parser.Parse(SplitString("app --param1=1 --param1=2 --param1=3")));
 }
 
 
 TEST(ArgParserTestSuite, FlagTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     parser.AddFlag('f', "flag1");
 
     ASSERT_TRUE(parser.Parse(SplitString("app --flag1")));
@@ -121,7 +120,7 @@ TEST(ArgParserTestSuite, FlagTest) {
 
 
 TEST(ArgParserTestSuite, FlagsTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     bool flag3 ;
     parser.AddFlag('a', "flag1");
     parser.AddFlag('b', "flag2").Default(true);
@@ -135,23 +134,25 @@ TEST(ArgParserTestSuite, FlagsTest) {
 
 
 TEST(ArgParserTestSuite, PositionalArgTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     std::vector<int> values;
-    parser.AddIntArgument("Param1").MultiValue(1).Positional().StoreValues(values);
+    parser.AddIntArgument("Param1").MultiValue<int>(1).Positional().StoreValues(values);
 
     ASSERT_TRUE(parser.Parse(SplitString("app 1 2 3 4 5")));
     ASSERT_EQ(values[0], 1);
     ASSERT_EQ(values[2], 3);
     ASSERT_EQ(values.size(), 5);
 }
+#endif
 
+#ifndef BANED_TEST
 
 TEST(ArgParserTestSuite, PositionalAndNormalArgTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     std::vector<int> values;
     parser.AddFlag('f', "flag", "Flag");
     parser.AddIntArgument('n', "number", "Some Number");
-    parser.AddIntArgument("Param1").MultiValue(1).Positional().StoreValues(values);
+    parser.AddIntArgument("Param1").MultiValue<int>(1).Positional().StoreValues(values);
 
     ASSERT_TRUE(parser.Parse(SplitString("app -n 0 1 2 3 4 5 -f")));
     ASSERT_TRUE(parser.GetFlag("flag"));
@@ -162,8 +163,9 @@ TEST(ArgParserTestSuite, PositionalAndNormalArgTest) {
 }
 
 
+
 TEST(ArgParserTestSuite, RepeatedParsingTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     parser.AddHelp('h', "help", "Some Description about program");
     parser.AddStringArgument('i', "input", "File path for input file");
     parser.AddStringArgument('o', "output", "File path for output directory");
@@ -180,23 +182,24 @@ TEST(ArgParserTestSuite, RepeatedParsingTest) {
     }
 
     ASSERT_TRUE(parser.Parse(SplitString("app --number 2 -s -i test -o=test --first=52")));
-    ASSERT_TRUE(parser.GetIntValue("first"), 52);
+    ASSERT_EQ(parser.GetIntValue("first"), 52);
 }
 
-
 TEST(ArgParserTestSuite, HelpTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     parser.AddHelp('h', "help", "Some Description about program");
 
     ASSERT_TRUE(parser.Parse(SplitString("app --help")));
     ASSERT_TRUE(parser.Help());
 }
+#endif
 
+#ifndef BANED_TEST
 
 TEST(ArgParserTestSuite, HelpStringTest) {
-    ArgParser parser("My Parser");
+    ArgParserLabwork parser("My Parser");
     parser.AddHelp('h', "help", "Some Description about program");
-    parser.AddStringArgument('i', "input", "File path for input file").MultiValue(1);
+    parser.AddStringArgument('i', "input", "File path for input file").MultiValue<std::string>(1);
     parser.AddFlag('s', "flag1", "Use some logic").Default(true);
     parser.AddFlag('p', "flag2", "Use some logic");
     parser.AddIntArgument("numer", "Some Number");
@@ -219,3 +222,4 @@ TEST(ArgParserTestSuite, HelpStringTest) {
     //     "-h, --help Display this help and exit\n"
     // );
 }
+#endif 
