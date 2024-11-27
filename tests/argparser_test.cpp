@@ -15,9 +15,9 @@ std::vector<std::string> SplitString(const std::string& str) {
 
     return {std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>()};
 }
+// #define BANED_TEST
+#ifndef BANED_TEST
 
-
-#if 1
 TEST(ArgParserTestSuite, EmptyTest) {
     ArgParserLabwork parser("My Empty Parser");
 
@@ -99,7 +99,6 @@ TEST(ArgParserTestSuite, MultiValueTest) {
     ASSERT_EQ(int_values[2], 3);
 }
 
-#endif
 
 TEST(ArgParserTestSuite, MinCountMultiValueTest) {
     ArgParserLabwork parser("My Parser");
@@ -119,7 +118,7 @@ TEST(ArgParserTestSuite, FlagTest) {
     ASSERT_TRUE(parser.GetFlag("flag1"));
 }
 
-#if 1
+
 TEST(ArgParserTestSuite, FlagsTest) {
     ArgParserLabwork parser("My Parser");
     bool flag3 ;
@@ -132,7 +131,6 @@ TEST(ArgParserTestSuite, FlagsTest) {
     ASSERT_TRUE(parser.GetFlag("flag2"));
     ASSERT_TRUE(flag3);
 }
-#endif
 
 
 TEST(ArgParserTestSuite, PositionalArgTest) {
@@ -145,7 +143,9 @@ TEST(ArgParserTestSuite, PositionalArgTest) {
     ASSERT_EQ(values[2], 3);
     ASSERT_EQ(values.size(), 5);
 }
+#endif
 
+#ifndef BANED_TEST
 
 TEST(ArgParserTestSuite, PositionalAndNormalArgTest) {
     ArgParserLabwork parser("My Parser");
@@ -161,6 +161,7 @@ TEST(ArgParserTestSuite, PositionalAndNormalArgTest) {
     ASSERT_EQ(values[2], 3);
     ASSERT_EQ(values.size(), 5);
 }
+
 
 
 TEST(ArgParserTestSuite, RepeatedParsingTest) {
@@ -184,8 +185,6 @@ TEST(ArgParserTestSuite, RepeatedParsingTest) {
     ASSERT_EQ(parser.GetIntValue("first"), 52);
 }
 
-#if 1
-
 TEST(ArgParserTestSuite, HelpTest) {
     ArgParserLabwork parser("My Parser");
     parser.AddHelp('h', "help", "Some Description about program");
@@ -193,7 +192,9 @@ TEST(ArgParserTestSuite, HelpTest) {
     ASSERT_TRUE(parser.Parse(SplitString("app --help")));
     ASSERT_TRUE(parser.Help());
 }
+#endif
 
+#ifndef BANED_TEST
 
 TEST(ArgParserTestSuite, HelpStringTest) {
     ArgParserLabwork parser("My Parser");

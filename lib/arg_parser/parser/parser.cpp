@@ -45,12 +45,16 @@ void ParserDevice::Run(std::vector<Argument>& args,
   }
 
   for (auto&& arg : args) {
-    if (arg.GetStatus() != Argument::FoundClasses::WAS_INITIALIZE) {
+    if (arg.GetStatus() == Argument::FoundClasses::NOT_FOUND) {
       std::string error_message = "parse fail, cannot find arg\n   full name: ";
       error_message += arg.GetFullName();
       error_message += "\n   short name: ";
       error_message += arg.GetShortName();
       throw std::runtime_error(error_message);
+    } else if (arg.GetStatus() == Argument::FoundClasses::WAS_FOUND) {
+      std::cerr << "Arg was not initialized:\n" 
+        << "   full name: " << arg.GetFullName() << "\n"
+        << "   short name: " << arg.GetShortName() << std::endl;
     }
   }
 

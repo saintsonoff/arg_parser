@@ -91,12 +91,15 @@ auto Argument::GetData() {
   return ValueType{};
 };
 
+
 template<typename ValueType>
 auto Argument::GetMultiData() {
-  std::cout << typeid(*store_).name() << std::endl;
-  std::cout << typeid(MultiValueStore<ValueType>).name() << std::endl;
-  if ( typeid(*store_) == typeid(MultiValueStore<ValueType>)) {
-    return dynamic_cast<MultiValueStore<ValueType>*>(store_.get())->data_;
+  try {
+    if ( typeid(*store_) == typeid(MultiValueStore<ValueType>)) {
+      return dynamic_cast<MultiValueStore<ValueType>*>(store_.get())->data_;
+    }
+  } catch (const std::bad_typeid& ex) {
+      std::cout << ex.what() << '\n';
   }
   return ValueType{};
 };
@@ -109,6 +112,9 @@ Argument& Argument::SetStore(Store<StoreType>* store_ptr) {
   store_ = std::move(std::unique_ptr<Store<StoreType>>(store_ptr));
   return *this;
 };
+
+template<>
+Argument& Argument::SetStore<bool>(Store<bool>* store_ptr);
 
 template<typename StoreType>
 Argument& Argument::SetMultiValueStore(MultiValueStore<StoreType>* store_ptr) {

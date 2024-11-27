@@ -31,4 +31,8 @@ bool ArgParser::parse(std::vector<std::string_view>& argv) {
   return true;
 };
 
+void ArgParser::ClearArguments() {
+  args_.clear();
+};
+
 } // argument_parser

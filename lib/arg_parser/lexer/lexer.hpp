@@ -140,10 +140,18 @@ void LexerDevice::Lexing(InItr argv_begin, InItr argv_end) {
         arg.begin() + full_argument_prefix.size(),
         arg.end());
     } else if (arg.starts_with(short_argument_prefix) &&
-      !IsNumber(arg)) {
+      !IsNumber(arg) && arg.size() == 2) {
       PushBackLexeme<lexeme::ShortName>(lexemes_cont_,
         arg.begin() + short_argument_prefix.size(),
         arg.end());
+    } else if (arg.starts_with(short_argument_prefix) &&
+      !IsNumber(arg) && arg.size() > 2) {
+        for (auto beg_itr = std::begin(arg) + 1, end_itr = std::end(arg);
+          beg_itr != end_itr; ++beg_itr) {
+          PushBackLexeme<lexeme::ShortName>(lexemes_cont_,
+          beg_itr,
+          beg_itr + 1);
+          }
     } else {
       PushBackLexeme<lexeme::Value>(lexemes_cont_,
         arg.begin(),
@@ -171,14 +179,19 @@ SearchArgStatus IsContainLexeme(InItr begin_itr, InItr end_itr, lexeme::Lexeme& 
           return false;
         }
     }); res_itr != end_itr) {
-      if (typeid(*(res_itr->GetStorePtr())) == typeid(Store<bool>&)) {
-        std::for_each(begin_itr, end_itr,
-          [&arg_lexeme](std::iterator_traits<decltype(begin_itr)>::reference arg) {
-          if (arg_lexeme.value_ == arg.GetShortName())
-            arg.convert("1");
-        });
+      try {
+        if (typeid(*(res_itr->GetStorePtr())) == typeid(Store<bool>&)) {
+          std::for_each(begin_itr, end_itr,
+            [&arg_lexeme](std::iterator_traits<decltype(begin_itr)>::reference arg) {
+            if (arg_lexeme.value_ == arg.GetShortName())
+              arg.convert("1");
+          });
 
-        return SearchArgStatus::FLAG;
+          return SearchArgStatus::FLAG;
+        }
+      } catch (const std::bad_typeid& ex) {
+        std::cout << ex.what() << '\n';
+        // return SearchArgStatus::NOT_FOUND;
       }
       if (res_itr->IsMultivalue() && res_itr->IsPositional()) {
         return SearchArgStatus::POSITIONAL_MULTIVALUE;
@@ -202,13 +215,18 @@ SearchArgStatus IsContainLexeme(InItr begin_itr, InItr end_itr, lexeme::Lexeme& 
           return false;
         }
     }); res_itr != end_itr) {
-      if (typeid(*(res_itr->GetStorePtr())) == typeid(Store<bool>&)) {
-        std::for_each(begin_itr, end_itr,
-          [&arg_lexeme](std::iterator_traits<decltype(begin_itr)>::reference arg) {
-          if (arg_lexeme.value_ == arg.GetFullName())
-            arg.convert("1");
-        });
-        return SearchArgStatus::FLAG;
+      try {
+        if (typeid(*(res_itr->GetStorePtr())) == typeid(Store<bool>&)) {
+          std::for_each(begin_itr, end_itr,
+            [&arg_lexeme](std::iterator_traits<decltype(begin_itr)>::reference arg) {
+            if (arg_lexeme.value_ == arg.GetFullName())
+              arg.convert("1");
+          });
+          return SearchArgStatus::FLAG;
+        }
+      } catch (const std::bad_typeid& ex) {
+        std::cout << ex.what() << '\n';
+        // return SearchArgStatus::NOT_FOUND;
       }
       if (res_itr->IsMultivalue() && res_itr->IsPositional()) {
         return SearchArgStatus::POSITIONAL_MULTIVALUE;
@@ -229,26 +247,30 @@ SearchArgStatus IsContainLexeme(InItr begin_itr, InItr end_itr, lexeme::Lexeme& 
 
 template<std::input_iterator InItr>
 SearchArgStatus CheckStatus(InItr begin_itr, InItr end_itr, lexeme::Lexeme& arg_lexeme) {
-  if (typeid(arg_lexeme) == typeid(lexeme::ShortName)) {
-    if (auto search_res = IsContainLexeme<lexeme::ShortName>(begin_itr, end_itr, arg_lexeme);
-      search_res != SearchArgStatus::NOT_FOUND) {
-      return search_res;
-    } else {
-      std::string error_message = "Argument found, but not retistrate:   \"";
-      error_message += arg_lexeme.value_;
-      error_message += "\"\n";
-      throw std::runtime_error(error_message);
+  try {
+    if (typeid(arg_lexeme) == typeid(lexeme::ShortName)) {
+      if (auto search_res = IsContainLexeme<lexeme::ShortName>(begin_itr, end_itr, arg_lexeme);
+        search_res != SearchArgStatus::NOT_FOUND) {
+        return search_res;
+      } else {
+        std::string error_message = "Argument found, but not retistrate:   \"";
+        error_message += arg_lexeme.value_;
+        error_message += "\"\n";
+        throw std::runtime_error(error_message);
+      }
+    } else if (typeid(arg_lexeme) == typeid(lexeme::FullName)) {
+      if (auto search_res = IsContainLexeme<lexeme::FullName>(begin_itr, end_itr, arg_lexeme);
+        search_res != SearchArgStatus::NOT_FOUND) {
+        return search_res;
+      } else {
+        std::string error_message = "Argument found, but not retistrate:\n   \"";
+        error_message += arg_lexeme.value_;
+        error_message += "\"\n";
+        throw std::runtime_error(error_message);
+      }
     }
-  } else if (typeid(arg_lexeme) == typeid(lexeme::FullName)) {
-    if (auto search_res = IsContainLexeme<lexeme::FullName>(begin_itr, end_itr, arg_lexeme);
-      search_res != SearchArgStatus::NOT_FOUND) {
-      return search_res;
-    } else {
-      std::string error_message = "Argument found, but not retistrate:\n   \"";
-      error_message += arg_lexeme.value_;
-      error_message += "\"\n";
-      throw std::runtime_error(error_message);
-    }
+  } catch (const std::bad_typeid& ex) {
+    std::cout << ex.what() << '\n';
   }
   return SearchArgStatus::NOT_FOUND;
 };
@@ -256,9 +278,13 @@ SearchArgStatus CheckStatus(InItr begin_itr, InItr end_itr, lexeme::Lexeme& arg_
 template<std::random_access_iterator RAItr>
 auto SetOwnerToRange(RAItr begin_itr, RAItr end_itr, std::shared_ptr<lexeme::Lexeme> owner) {
   for (;begin_itr != end_itr; ++begin_itr) {
-    if (typeid(**begin_itr) != typeid(lexeme::Value))
-      break;
-
+    try {
+      if (typeid(**begin_itr) != typeid(lexeme::Value))
+        break;
+    } catch (const std::bad_typeid& ex) {
+      std::cout << ex.what() << '\n';
+      return end_itr;
+    }
     (*begin_itr)->SetOwner(owner);
   }
   return --begin_itr;
@@ -292,12 +318,16 @@ void LexerDevice::SemanticLexing(InItr arguments_begin, InItr arguments_end) {
   LexemContType position_candidats_cont;
   LexemContType clear_lexemes_cont;
   for (auto&& elem : lexemes_cont_) {
-    if (typeid(*elem) == typeid(lexeme::Value)) {
-      if(elem->GetOwner()) {
-        clear_lexemes_cont.push_back(elem);
-      } else {
-        position_candidats_cont.push_back(elem);
+    try {
+      if (typeid(*elem) == typeid(lexeme::Value)) {
+        if(elem->GetOwner()) {
+          clear_lexemes_cont.push_back(elem);
+        } else {
+          position_candidats_cont.push_back(elem);
+        }
       }
+    } catch (const std::bad_typeid& ex) {
+      std::cout << ex.what() << '\n';
     }
   }
 

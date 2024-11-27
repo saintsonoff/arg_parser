@@ -42,4 +42,14 @@ bool Argument::convert(std::string_view string_data) {
   return store_->string_to_data({string_data.begin(), string_data.end()});
 };
 
+template<>
+Argument& Argument::SetStore<bool>(Store<bool>* store_ptr) {
+  if (store_) {
+    store_.reset();
+  }
+  store_ = std::move(std::unique_ptr<Store<bool>>(store_ptr));
+  WasFound();
+  return *this;
+};
+
 } // argument_parser

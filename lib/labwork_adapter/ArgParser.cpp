@@ -98,6 +98,7 @@ void ArgParserLabwork::AddHelp(char short_name, std::string_view full_name, std:
   short_name_cont_.push_back(new char[2]{short_name, '\0'});
   argument_parser::Argument arg{full_name, short_name_cont_.back(), descriprion};
   arg.SetStore(new argument_parser::Store<bool>{});
+  arg.WasFound();
 
   argument_labwork_cont_.emplace_back(std::move(arg));
 
@@ -105,8 +106,9 @@ void ArgParserLabwork::AddHelp(char short_name, std::string_view full_name, std:
 };
 
 bool ArgParserLabwork::Help() {
-
-  return true;
+  if (help_name_.empty())
+    return false;
+  return arg_parser_device_.GetValue<bool>(help_name_);
 };
 
 std::string ArgParserLabwork::HelpDescription() {
@@ -124,6 +126,7 @@ bool ArgParserLabwork::Parse(int argc, char** argv) {
 };
 
 bool ArgParserLabwork::Parse(const std::vector<std::string>& argv) {
+  // arg_parser_device_.ClearArguments();
   for (auto&& arg : argument_labwork_cont_) {
     arg_parser_device_.registrate(arg.GetArg());
   }
@@ -132,9 +135,8 @@ bool ArgParserLabwork::Parse(const std::vector<std::string>& argv) {
   std::for_each(std::begin(argv) + 1, std::end(argv), [&argv_sv_cont](const std::string& elem){
     argv_sv_cont.push_back(elem);
   });
-
-
-  return arg_parser_device_.parse(argv_sv_cont);
+  // bool parsing_status = ;
+  return (arg_parser_device_.parse(argv_sv_cont) || Help());
 };
 
 bool ArgParserLabwork::GetFlag(std::string_view name) {
