@@ -22,10 +22,10 @@ class ArgumentLabwork {
   // ArgumentLabwork(argument_parser::Argument arg);
 
   template<typename Type>
-  ArgumentLabwork& StoreValue(Type&& store_ptr);
+  ArgumentLabwork& StoreValue(Type& store_ptr);
 
   template<typename Type>
-  ArgumentLabwork& StoreValues(Type&& store_ptr);
+  ArgumentLabwork& StoreValues(Type& store_ptr);
 
   template<typename Type>
   ArgumentLabwork& MultiValue(int count = 0);
@@ -48,14 +48,14 @@ ArgumentLabwork& ArgumentLabwork::Default(Type&& default_value) {
 };
 
 template<typename Type>
-ArgumentLabwork& ArgumentLabwork::StoreValue(Type&& store_ptr) {
+ArgumentLabwork& ArgumentLabwork::StoreValue(Type& store_ptr) {
   arg_.SetStore(new argument_parser::Store<std::remove_reference_t<Type>>());
   arg_.SetPtrStore(&store_ptr);
   return *this;
 }
 
 template<typename Type>
-ArgumentLabwork& ArgumentLabwork::StoreValues(Type&& store_ptr) {
+ArgumentLabwork& ArgumentLabwork::StoreValues(Type& store_ptr) {
   arg_.SetMultiValueStore(new argument_parser::MultiValueStore<std::remove_reference_t<Type>>());
   arg_.SetPtrMultiValueStore(&store_ptr);
   return *this;
@@ -112,7 +112,7 @@ class ArgParserLabwork {
   argument_parser::ArgParser arg_parser_device_;
 
   std::vector<ArgumentLabwork> argument_labwork_cont_;
-  std::vector<char*> short_name_cont_;
+  std::vector<std::unique_ptr<char>> short_name_cont_;
 
   std::string_view parser_name_;
 };

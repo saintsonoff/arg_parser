@@ -122,7 +122,7 @@ Argument& Argument::SetMultiValueStore(MultiValueStore<StoreType>* store_ptr) {
   if (store_) {
     store_.reset();
   }
-  store_ = std::move(std::unique_ptr<MultiValueStore<StoreType>>(store_ptr));
+  store_ = std::unique_ptr<MultiValueStore<StoreType>>(store_ptr);
 
   return *this;
 };
@@ -133,7 +133,7 @@ void Argument::SetPtrStore(Type* ptr) {
   if (store_.get()) {
     dynamic_cast<Store<Type>&>(*store_).ptr_ = ptr;
   } else {
-    store_ = std::unique_ptr<Store<Type>>();
+    store_ = std::make_unique<Store<Type>>();
     dynamic_cast<Store<Type>&>(*store_).ptr_ = ptr;
   }
 };
@@ -151,7 +151,7 @@ void Argument::SetPtrMultiValueStore(Type* ptr) {
 
 template<typename StoreType, typename... ConstructArgumentTypes>
 Argument make_argument(ConstructArgumentTypes&&... construct_args) {
-  Argument arg((construct_args, ...));
+  Argument arg(std::forward<ConstructArgumentTypes>(construct_args)...);
   return arg;
 };
 
