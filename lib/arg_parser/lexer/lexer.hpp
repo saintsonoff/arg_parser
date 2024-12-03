@@ -190,7 +190,10 @@ SearchArgStatus IsContainLexeme(InItr begin_itr, InItr end_itr, lexeme::Lexeme& 
           return SearchArgStatus::FLAG;
         }
       } catch (const std::bad_typeid& ex) {
+#ifdef PARSER_VERBOSE
         std::cout << ex.what() << '\n';
+#endif
+        // i need it for labwork task
         // return SearchArgStatus::NOT_FOUND;
       }
       if (res_itr->IsMultivalue() && res_itr->IsPositional()) {
@@ -225,7 +228,10 @@ SearchArgStatus IsContainLexeme(InItr begin_itr, InItr end_itr, lexeme::Lexeme& 
           return SearchArgStatus::FLAG;
         }
       } catch (const std::bad_typeid& ex) {
+#ifdef PARSER_VERBOSE
         std::cout << ex.what() << '\n';
+#endif
+        // i need it for labwork task
         // return SearchArgStatus::NOT_FOUND;
       }
       if (res_itr->IsMultivalue() && res_itr->IsPositional()) {
@@ -270,7 +276,9 @@ SearchArgStatus CheckStatus(InItr begin_itr, InItr end_itr, lexeme::Lexeme& arg_
       }
     }
   } catch (const std::bad_typeid& ex) {
+#ifdef PARSER_VERBOSE
     std::cout << ex.what() << '\n';
+#endif
   }
   return SearchArgStatus::NOT_FOUND;
 };
@@ -282,7 +290,9 @@ auto SetOwnerToRange(RAItr begin_itr, RAItr end_itr, std::shared_ptr<lexeme::Lex
       if (typeid(**begin_itr) != typeid(lexeme::Value))
         break;
     } catch (const std::bad_typeid& ex) {
+#ifdef PARSER_VERBOSE
       std::cout << ex.what() << '\n';
+#endif
       return end_itr;
     }
     (*begin_itr)->SetOwner(owner);
@@ -327,13 +337,14 @@ void LexerDevice::SemanticLexing(InItr arguments_begin, InItr arguments_end) {
         }
       }
     } catch (const std::bad_typeid& ex) {
+#ifdef PARSER_VERBOSE
       std::cout << ex.what() << '\n';
+#endif
     }
   }
 
   lexemes_cont_ = std::move(clear_lexemes_cont);
   position_lexemes_cont_ = std::move(position_candidats_cont);
-
 };
 
 } // argument_pareser

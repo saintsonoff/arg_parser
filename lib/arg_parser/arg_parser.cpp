@@ -1,5 +1,5 @@
-#include "parser/parser.hpp"
-#include <arg_parser.hpp>
+#include "arg_parser.hpp"
+
 
 #include <stdexcept>
 #include <iostream>
@@ -14,7 +14,9 @@ bool ArgParser::parse(std::vector<std::string_view>& argv) {
   try {
     lexer.Run(argv, args_);
   } catch (std::runtime_error& ex){
+#ifdef PARSER_VERBOSE
     std::cerr << ex.what() << std::endl;
+#endif
     return false;
   }
 
@@ -22,9 +24,11 @@ bool ArgParser::parse(std::vector<std::string_view>& argv) {
 
   ParserDevice parser;
   try {
-    parser.Run(args_, lexemes_cont, positional_lexemes_cont);
+    parser.Run(args_, positional_lexemes_cont, lexemes_cont);
   } catch (std::runtime_error& ex){
+#ifdef PARSER_VERBOSE
     std::cerr << ex.what() << std::endl;
+#endif
     return false;
   }
 

@@ -1,9 +1,9 @@
-#include "store.hpp"
-#include <argument.hpp>
-#include <iterator>
+#include "argument.hpp"
+
 #include <memory>
 
 #include <lexer/lexer.hpp>
+#include <store.hpp>
 
 namespace argument_parser {
 
@@ -38,8 +38,10 @@ Argument& Argument::operator=(Argument&& value) {
 }
 
 bool Argument::convert(std::string_view string_data) {
-  is_found_ = FoundClasses::WAS_INITIALIZE;
-  return store_->string_to_data({string_data.begin(), string_data.end()});
+  bool covertation_res = store_->string_to_data({string_data.begin(), string_data.end()});
+  if (covertation_res)
+    is_found_ = FoundClasses::WAS_INITIALIZE;
+  return covertation_res;
 };
 
 template<>

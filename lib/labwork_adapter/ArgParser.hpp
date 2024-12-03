@@ -19,7 +19,6 @@ class ArgumentLabwork {
     arg_ = std::move(value.arg_);
     return *this;
   };
-  // ArgumentLabwork(argument_parser::Argument arg);
 
   template<typename Type>
   ArgumentLabwork& StoreValue(Type& store_ptr);

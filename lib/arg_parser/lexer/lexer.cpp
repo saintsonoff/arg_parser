@@ -1,5 +1,4 @@
 #include "lexer.hpp"
-#include <lexer.hpp>
 
 #include <iterator>
 #include <memory>

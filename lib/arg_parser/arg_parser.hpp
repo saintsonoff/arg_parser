@@ -38,8 +38,13 @@ template<typename ValueType>
 auto ArgParser::GetValue(std::string_view arg_name) {
   for (auto&& elem : args_) {
     if (elem.GetFullName() == arg_name ||
-        elem.GetShortName() == arg_name)
-      return elem.GetData<ValueType>();
+        elem.GetShortName() == arg_name) {
+      if (elem.IsMultivalue()) {
+        return ValueType{GetMultiValue<std::vector<ValueType>>(arg_name)[0]};
+      } else {
+        return elem.GetData<ValueType>();
+      }
+    }
   }
   return ValueType{};
 };

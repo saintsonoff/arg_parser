@@ -1,5 +1,4 @@
 #include "ArgParser.hpp"
-#include <ArgParser.hpp>
 
 #include <memory> 
 #include <string>
@@ -126,7 +125,6 @@ bool ArgParserLabwork::Parse(int argc, char** argv) {
 };
 
 bool ArgParserLabwork::Parse(const std::vector<std::string>& argv) {
-  // arg_parser_device_.ClearArguments();
   for (auto&& arg : argument_labwork_cont_) {
     arg_parser_device_.registrate(arg.GetArg());
   }

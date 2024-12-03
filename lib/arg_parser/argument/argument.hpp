@@ -1,9 +1,6 @@
 #ifndef _ARGUMENT_HPP_
 #define _ARGUMENT_HPP_
 
-#include <concepts>
-#include <type_traits>
-#include <vector>
 #include <memory>
 #include <string_view>
 #include <iostream>
@@ -100,7 +97,9 @@ auto Argument::GetMultiData() {
       return dynamic_cast<MultiValueStore<ValueType>*>(store_.get())->data_;
     }
   } catch (const std::bad_typeid& ex) {
+#ifdef PARSER_VERBOSE
       std::cout << ex.what() << '\n';
+#endif
   }
   return ValueType{};
 };

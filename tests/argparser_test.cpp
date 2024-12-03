@@ -1,6 +1,5 @@
 #include "lib/arg_parser/store/store.hpp"
 #include <sstream>
-#include <fstream>
 
 #include <gtest/gtest.h>
 #include <lib/labwork_adapter/ArgParser.hpp>
@@ -394,7 +393,6 @@ ASSERT_TRUE(parser_device.parse(argv_test));
 #endif
 }
 
-#if 0
 TEST(ArgParserTestSuite, NotAdapterFalseTest) {
     argument_parser::ArgParser parser_device;
 
@@ -424,11 +422,10 @@ TEST(ArgParserTestSuite, NotAdapterFalseTest) {
 
   std::vector<std::string_view> argv_test1 = {
     "name_of_prog",
-    "--integer=0", "-1", "2", "3", "--integer2=pupupuuuuuu",
+    "--integer=0", "-1", "2", "3", "--dbl=pupupuuuuuu",
     "privet_mir",
     "hello",
     "world",
-    "--flag",
     "--dbl", "30.239",
     "--store_arg", "30",
   };
@@ -452,19 +449,11 @@ TEST(ArgParserTestSuite, NotAdapterFalseTest) {
     "--dbl", "30.239",
     "--store_arg", "30",
   };
-  std::vector<std::string_view> argv_test4 = {
-    "name_of_prog",
-    "--integer=0", "-1", "2", "3", "4",
-    "--flag",
-    "--dbl", "30.239",
-    "--store_arg", "30",
-  };
 
-// ASSERT_FALSE(parser_device.parse(argv_test0));
+ASSERT_FALSE(parser_device.parse(argv_test0));
 ASSERT_FALSE(parser_device.parse(argv_test1));
-// ASSERT_FALSE(parser_device.parse(argv_test2));
-// ASSERT_FALSE(parser_device.parse(argv_test3));
-// ASSERT_FALSE(parser_device.parse(argv_test4));
+ASSERT_FALSE(parser_device.parse(argv_test2));
+ASSERT_FALSE(parser_device.parse(argv_test3));
 
 #if 0
     if (parser_device.parse(argv_test)) {
@@ -474,5 +463,3 @@ ASSERT_FALSE(parser_device.parse(argv_test1));
     }
 #endif
 }
-
-#endif

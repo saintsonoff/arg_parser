@@ -1,16 +1,12 @@
 #include "argument.hpp"
 #include <iostream>
-#include <memory>
-#include <stdexcept>
 #include <string>
 #include <string_view>
-#include <array>
 #include <vector>
 
 #include <arg_parser.hpp>
 #include <argument.hpp>
 #include <store.hpp>
-// #include <arg_parser/arg_parser.h>
 
 // #define DEFAULT_MAIN
 #ifndef DEFAULT_MAIN
@@ -36,7 +32,6 @@ int main(int argc, char** argv) {
     "name_of_prog",
     "--integer=0", "-1", "2", "3", "4",
     "--flag",
-    // "--str=privet_mir",
     "privet_mir",
     "hello",
     "world",
@@ -49,7 +44,6 @@ int main(int argc, char** argv) {
   ArgumentParser::ArgParserLabwork parser_labwork("Program");
   parser_labwork.AddStringArgument("str").MultiValue<std::string>(1).Positional();
   std::vector<std::string> argv_string_cont = {
-        // "--str=privet_mir",
     "privet_mir",
     "hello",
     "world",

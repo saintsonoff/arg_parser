@@ -1,4 +1,4 @@
-#include <parser.hpp>
+#include "parser.hpp"
 
 #include <stdexcept>
 
@@ -41,7 +41,7 @@ void ParserDevice::Run(std::vector<Argument>& args,
         if (lexeme->GetOwner()->value_ == arg.GetFullName() ||
             lexeme->GetOwner()->value_ == arg.GetShortName()) {
           bool is_parse = arg.convert(lexeme->value_);
-          if (!is_parse && arg.GetStatus() == Argument::NOT_FOUND) {
+          if (!is_parse && arg.GetStatus() != Argument::WAS_INITIALIZE) {
             std::string error_message = "parse fail, cannot convert arg\n   from value: ";
             error_message += lexeme->value_;
             error_message += "\n   to argument: ";
@@ -61,9 +61,11 @@ void ParserDevice::Run(std::vector<Argument>& args,
       error_message += arg.GetShortName();
       throw std::runtime_error(error_message);
     } else if (arg.GetStatus() == Argument::FoundClasses::WAS_FOUND) {
+#ifdef PARSER_VERBOSE
       std::cerr << "Arg was not initialized:\n" 
         << "   full name: " << arg.GetFullName() << "\n"
         << "   short name: " << arg.GetShortName() << std::endl;
+#endif
     }
   }
 
