@@ -54,7 +54,7 @@ ArgumentLabwork& ArgumentLabwork::StoreValue(Type& store_ptr) {
   return *this;
 }
 
-template<typename Type>
+template<typename Type> 
 ArgumentLabwork& ArgumentLabwork::StoreValues(Type& store_ptr) {
   arg_.SetMultiValueStore(new argument_parser::MultiValueStore<std::remove_reference_t<Type>>());
   arg_.SetPtrMultiValueStore(&store_ptr);

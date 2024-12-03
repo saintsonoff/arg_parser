@@ -1,3 +1,4 @@
+#include "lib/arg_parser/store/store.hpp"
 #include <sstream>
 #include <fstream>
 
@@ -192,9 +193,7 @@ TEST(ArgParserTestSuite, HelpTest) {
     ASSERT_TRUE(parser.Parse(SplitString("app --help")));
     ASSERT_TRUE(parser.Help());
 }
-#endif
 
-#ifndef BANED_TEST
 
 TEST(ArgParserTestSuite, HelpStringTest) {
     ArgParserLabwork parser("My Parser");
@@ -206,6 +205,7 @@ TEST(ArgParserTestSuite, HelpStringTest) {
 
 
     ASSERT_TRUE(parser.Parse(SplitString("app --help")));
+    std::cout << "\n\n" << parser.HelpDescription() << std::endl;
     // Проверка закоментирована намеренно. Ождиается, что результат вызова функции будет приблизительно такой же,
     // но не с точностью до символа
 
@@ -222,4 +222,257 @@ TEST(ArgParserTestSuite, HelpStringTest) {
     //     "-h, --help Display this help and exit\n"
     // );
 }
-#endif 
+#endif
+
+TEST(ArgParserTestSuite, StoreIsEqToGetValue) {
+    std::vector<std::string> str_store;
+
+    ArgParserLabwork parser("TestParser");
+    parser.AddHelp('h', "help", "help description");
+    parser.AddStringArgument('s', "string", "positional multivalue test").MultiValue<std::string>(5).Positional().StoreValues(str_store);
+
+    ASSERT_TRUE(parser.Parse(SplitString("app 1 2 3 4 5 a b c d")));
+
+    auto string_res = parser.GetStringValues("string");
+
+    for (auto beg_store = str_store.begin(), end_store = str_store.end(),
+        beg_res = string_res.begin(), end_res = string_res.end();
+        beg_store != end_store && beg_res != end_res; ++beg_store, ++beg_res) {
+        bool cmp_res = *beg_store == *beg_res;
+        ASSERT_TRUE(cmp_res);
+    }
+}
+
+TEST(ArgParserTestSuite, MoreOneMultivalue) {
+    ArgParserLabwork parser("TestParser");
+    parser.AddHelp('h', "help", "help description");
+
+    std::vector<int> int_store;
+    parser.AddIntArgument("int", "positional multivalue string test").MultiValue<int>().Positional().StoreValues(int_store);
+
+    std::vector<std::string> str_store;
+    parser.AddStringArgument('s', "string", "positional multivalue string test").MultiValue<std::string>(5).Positional().StoreValues(str_store);
+
+    ASSERT_TRUE(parser.Parse(SplitString("app 1 2 3 4 5 a b c d e")));
+    auto string_res = parser.GetStringValues("string");
+
+    const int correct_int_arr[] = {1, 2, 3, 4, 5};
+    const char* correct_str_arr[] = {"a", "b", "c", "d", "e"};
+
+    std::size_t correct_arr_ind = 0;
+    for (auto&& elem : str_store) {
+        bool cmp_res = elem == correct_str_arr[correct_arr_ind];
+        if (!cmp_res)
+            std::cout << elem << " != " << correct_str_arr[correct_arr_ind] << std::endl;
+        ASSERT_TRUE(cmp_res);
+        ++correct_arr_ind;
+    }
+
+    correct_arr_ind = 0;
+    for (auto&& elem : int_store) {
+        bool cmp_res = elem == correct_int_arr[correct_arr_ind];
+        if (!cmp_res)
+            std::cout << elem << " != " << correct_int_arr[correct_arr_ind] << std::endl;
+        ASSERT_TRUE(cmp_res);
+        ++correct_arr_ind;
+    }
+}
+
+TEST(ArgParserTestSuite, MoreOnePositional) {
+    ArgParserLabwork parser("TestParser");
+
+    std::string fst_store;
+    std::string scd_store;
+    parser.AddStringArgument('a', "string1", "positional string test").Positional().StoreValue(fst_store);
+    parser.AddStringArgument('b', "string2", "positional string test").Positional().StoreValue(scd_store);
+
+    ASSERT_TRUE(parser.Parse(SplitString("app bububu bebebe")));
+
+    ASSERT_EQ(fst_store, "bububu");
+    ASSERT_EQ(scd_store, "bebebe");
+}
+
+TEST(ArgParserTestSuite, DefaultRedefinition) {
+    ArgParserLabwork parser("TestParser");
+
+    int store;
+    parser.AddIntArgument('a', "def_arg", "redef test").Default(239).Positional().StoreValue(store);
+
+    std::string str_store;
+    parser.AddStringArgument('b', "def_arg2", "redef test").Default<std::string>("gdzg").Positional().StoreValue(str_store);
+
+    ASSERT_TRUE(parser.Parse(SplitString("app 30 cgsg_forever")));
+
+    std::cout << parser.HelpDescription() << std::endl;
+
+    ASSERT_EQ(store, 30);
+    ASSERT_EQ(str_store, "cgsg_forever");
+}
+
+TEST(ArgParserTestSuite, MultivalueSeparation) {
+    std::vector<std::string> str_store;
+
+    ArgParserLabwork parser("TestParser");
+    parser.AddStringArgument('s', "string", "positional multivalue test").MultiValue<std::string>(4).Positional().StoreValues(str_store);
+    parser.AddStringArgument('a', "non_pos_string", "positional multivalue test");
+
+    ASSERT_TRUE(parser.Parse(SplitString("app one two --non_pos_string cgsg_forever four five")));
+
+    ASSERT_EQ(parser.GetStringValue("non_pos_string"), "cgsg_forever");
+
+    const char* correct_arr[] = {"one", "two", "four", "five"};
+    std::size_t correct_arr_ind = 0;
+
+    ASSERT_EQ(sizeof(correct_arr) / sizeof(correct_arr[0]), str_store.size());
+    for (auto beg_store = str_store.begin(), end_store = str_store.end();
+        beg_store != end_store ; ++beg_store, ++correct_arr_ind) {
+        bool cmp_res = *beg_store == correct_arr[correct_arr_ind];
+        if (!cmp_res)
+            std::cout << *beg_store << " != " << correct_arr[correct_arr_ind] << std::endl;
+        ASSERT_TRUE(cmp_res);
+    }
+}
+
+TEST(ArgParserTestSuite, MultivalueDefinition) {
+    std::vector<std::string> str_store;
+
+    ArgParserLabwork parser("TestParser");
+    parser.AddStringArgument('s', "string", "positional multivalue test").Positional().MultiValue<std::string>().StoreValues(str_store);
+
+    ASSERT_TRUE(parser.Parse(SplitString("app -s one --string=two -s=four --string five 30ka")));
+
+    const char* correct_arr[] = {"one", "two", "four", "five", "30ka"};
+    std::size_t correct_arr_ind = 0;
+
+    ASSERT_EQ(sizeof(correct_arr) / sizeof(correct_arr[0]), str_store.size());
+    for (auto beg_store = str_store.begin(), end_store = str_store.end();
+        beg_store != end_store ; ++beg_store, ++correct_arr_ind) {
+        bool cmp_res = *beg_store == correct_arr[correct_arr_ind];
+        if (!cmp_res)
+            std::cout << *beg_store << " != " << correct_arr[correct_arr_ind] << std::endl;
+        ASSERT_TRUE(cmp_res);
+    }
+}
+
+TEST(ArgParserTestSuite, NotAdapterTrueTest) {
+    argument_parser::ArgParser parser_device;
+
+    argument_parser::Argument arg("store_arg");
+    arg.SetStore<int>(nullptr);
+    arg.SetStore(new argument_parser::Store<int>());
+
+    int store;
+    arg.SetPtrStore(&store);
+
+    parser_device.registrate(
+        argument_parser::make_argument<std::vector<int>>("integer").SetMultiValueStore(new argument_parser::MultiValueStore<std::vector<int>>()),
+        argument_parser::make_argument<bool>("flag").SetStore(new argument_parser::Store<bool>()),
+        argument_parser::make_argument<std::string>("str").SetMultiValueStore(new argument_parser::MultiValueStore<std::vector<std::string>>()).Positional(),
+        argument_parser::make_argument<double>("dbl").SetStore(new argument_parser::Store<double>()),
+        arg
+    );
+
+  std::vector<std::string_view> argv_test = {
+    "name_of_prog",
+    "--integer=0", "-1", "2", "3", "4",
+    "--flag",
+    "privet_mir",
+    "hello",
+    "world",
+    "--dbl", "30.239",
+    "--store_arg", "30",
+  };
+
+ASSERT_TRUE(parser_device.parse(argv_test));
+
+#if 0
+    if (parser_device.parse(argv_test)) {
+        std::cout << "main:   PARSING SUCCESSFULLY" << std::endl;
+    } else {
+        std::cout << "main:   PARSING FAIL" << std::endl;
+    }
+#endif
+}
+
+#if 0
+TEST(ArgParserTestSuite, NotAdapterFalseTest) {
+    argument_parser::ArgParser parser_device;
+
+    argument_parser::Argument arg("store_arg");
+    arg.SetStore<int>(nullptr);
+    arg.SetStore(new argument_parser::Store<int>());
+
+    int store;
+    arg.SetPtrStore(&store);
+
+    auto arg_integer = std::move(argument_parser::make_argument<int>("integer2").SetStore(new argument_parser::Store<int>(5)));
+    arg_integer.WasInitialize();
+
+    parser_device.registrate(
+        argument_parser::make_argument<std::vector<int>>("integer").SetMultiValueStore(new argument_parser::MultiValueStore<std::vector<int>>()),
+        arg_integer,
+        argument_parser::make_argument<bool>("flag").SetStore(new argument_parser::Store<bool>()),
+        argument_parser::make_argument<std::string>("str").SetMultiValueStore(new argument_parser::MultiValueStore<std::vector<std::string>>()).Positional(),
+        argument_parser::make_argument<double>("dbl").SetStore(new argument_parser::Store<double>()),
+        arg
+    );
+
+
+  std::vector<std::string_view> argv_test0 = {
+    "name_of_prog",
+  };
+
+  std::vector<std::string_view> argv_test1 = {
+    "name_of_prog",
+    "--integer=0", "-1", "2", "3", "--integer2=pupupuuuuuu",
+    "privet_mir",
+    "hello",
+    "world",
+    "--flag",
+    "--dbl", "30.239",
+    "--store_arg", "30",
+  };
+  std::vector<std::string_view> argv_test2 = {
+    "name_of_prog",
+    "--intege=0", "-1", "2", "3", "4",
+    "--flag",
+    "privet_mir",
+    "hello",
+    "world",
+    "--dbl", "30.239",
+    "--store_arg", "30",
+  };
+  std::vector<std::string_view> argv_test3 = {
+    "name_of_prog",
+    "--integer=0", "-1", "2", "3", "4",
+    "--not_flag",
+    "privet_mir",
+    "hello",
+    "world",
+    "--dbl", "30.239",
+    "--store_arg", "30",
+  };
+  std::vector<std::string_view> argv_test4 = {
+    "name_of_prog",
+    "--integer=0", "-1", "2", "3", "4",
+    "--flag",
+    "--dbl", "30.239",
+    "--store_arg", "30",
+  };
+
+// ASSERT_FALSE(parser_device.parse(argv_test0));
+ASSERT_FALSE(parser_device.parse(argv_test1));
+// ASSERT_FALSE(parser_device.parse(argv_test2));
+// ASSERT_FALSE(parser_device.parse(argv_test3));
+// ASSERT_FALSE(parser_device.parse(argv_test4));
+
+#if 0
+    if (parser_device.parse(argv_test)) {
+        std::cout << "main:   PARSING SUCCESSFULLY" << std::endl;
+    } else {
+        std::cout << "main:   PARSING FAIL" << std::endl;
+    }
+#endif
+}
+
+#endif

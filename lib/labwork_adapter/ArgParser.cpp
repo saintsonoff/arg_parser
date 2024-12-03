@@ -109,7 +109,10 @@ bool ArgParserLabwork::Help() {
 };
 
 std::string ArgParserLabwork::HelpDescription() {
-  return "";
+  std::string full_description{parser_name_.begin(), parser_name_.end()};
+  full_description += "\n";
+  full_description += arg_parser_device_.GetDescriptions();
+  return full_description;
 };
 
 bool ArgParserLabwork::Parse(int argc, char** argv) {
@@ -132,7 +135,14 @@ bool ArgParserLabwork::Parse(const std::vector<std::string>& argv) {
   std::for_each(std::begin(argv) + 1, std::end(argv), [&argv_sv_cont](const std::string& elem){
     argv_sv_cont.emplace_back(elem);
   });
-  return (arg_parser_device_.parse(argv_sv_cont) || Help());
+
+  auto parse_res = arg_parser_device_.parse(argv_sv_cont);
+
+  if (Help()) {
+    std::cout << HelpDescription() << std::endl;
+    return true;
+  }
+  return parse_res;
 };
 
 bool ArgParserLabwork::GetFlag(std::string_view name) {
@@ -156,7 +166,7 @@ int ArgParserLabwork::GetIntValue(std::string_view name) {
 };
 
 int ArgParserLabwork::GetIntValue(std::string_view name, std::size_t ind) {
-  return (arg_parser_device_.GetMultiValue<std::vector<int>>(name))[ind];
+  return (arg_parser_device_.GetValue<int>(name));
 };
 
 std::vector<int> ArgParserLabwork::GetIntValues(std::string_view name) {

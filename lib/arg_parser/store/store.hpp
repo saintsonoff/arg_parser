@@ -28,6 +28,7 @@ class BaseStore {
 #if LABA4
   virtual std::size_t GetCountOfData() const { return 0; };
 #endif
+  virtual std::string GetStrType() = 0;
   virtual bool string_to_data(const std::string& str_data) = 0;
 };
 
@@ -44,6 +45,7 @@ class Store : public BaseStore {
 
  public:
   bool string_to_data(const std::string& str_data) override;
+  std::string GetStrType() override;
 
  public:
   StorageType data_;
@@ -62,6 +64,7 @@ class MultiValueStore : public BaseStore {
   ~MultiValueStore() override = default;
 
  public:
+  std::string GetStrType() override;
   bool string_to_data(const std::string& str_data) override;
 #if LABA4
   std::size_t GetCountOfData() const override { return data_.size(); };
@@ -84,12 +87,18 @@ Store<StorageType>& Store<StorageType>::operator=(Store&& value) {
 };
 
 template<IsContainer StorageType>
-MultiValueStore<StorageType>::MultiValueStore(MultiValueStore&& value) : data_(std::move(value.data_)){  };
+MultiValueStore<StorageType>::MultiValueStore(MultiValueStore&& value)
+ : data_(std::move(value.data_)){  };
 
 template<IsContainer StorageType>
 MultiValueStore<StorageType>& MultiValueStore<StorageType>::operator=(MultiValueStore&& value) {
   data_ = value.data_;
   return *this;
+};
+
+template<IsContainer StorageType>
+std::string MultiValueStore<StorageType>::GetStrType() {
+  return typeid(StorageType).name();
 };
 
 template<typename StorageType>
@@ -106,6 +115,11 @@ bool Store<StorageType>::string_to_data(const std::string& str_data) {
 #endif
 
   return true;
+};
+
+template<typename StorageType>
+std::string Store<StorageType>::GetStrType() {
+  return typeid(StorageType).name();
 };
 
 template<IsContainer StorageType>

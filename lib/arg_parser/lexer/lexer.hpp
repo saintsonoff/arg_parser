@@ -65,7 +65,7 @@ class LexerDevice {
   inline LexemContType GetLexemes() { return lexemes_cont_; };
   inline LexemContType GetPositionalCandidats() { return position_lexemes_cont_; };
   inline std::pair<LexemContType, LexemContType> GetData() {
-     return {position_lexemes_cont_, lexemes_cont_};
+     return {lexemes_cont_, position_lexemes_cont_};
   };
 
  private:
@@ -331,8 +331,8 @@ void LexerDevice::SemanticLexing(InItr arguments_begin, InItr arguments_end) {
     }
   }
 
-  lexemes_cont_ = clear_lexemes_cont;
-  position_lexemes_cont_ = position_candidats_cont;
+  lexemes_cont_ = std::move(clear_lexemes_cont);
+  position_lexemes_cont_ = std::move(position_candidats_cont);
 
 };
 

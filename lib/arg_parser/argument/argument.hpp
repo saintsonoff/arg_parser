@@ -44,7 +44,6 @@ class Argument {
   inline bool IsPositional() const { return is_positional_; };
   inline FoundClasses GetStatus() { return is_found_; };
 
-
   inline void WasFound() { is_found_ = FoundClasses::WAS_FOUND; };
   inline void WasInitialize() { is_found_ = FoundClasses::WAS_INITIALIZE; };
   inline Argument& Positional() {
@@ -57,13 +56,15 @@ class Argument {
 
   inline std::string_view GetFullName() const { return full_name_; };
   inline std::string_view GetShortName() const { return short_name_; };
+  inline std::string_view GetDescription() const { return description_; };
+  inline std::string GetStrStoreType() const { return store_->GetStrType(); };
 
   inline const BaseStore* GetStorePtr() const { return store_.get(); };
 
  private:
   std::string_view full_name_ = "";
   std::string_view short_name_ = "";
-  std::string_view descriprion_ = "";
+  std::string_view description_ = "";
   bool is_multivalue_ = false;
   bool is_positional_ = false;
   FoundClasses is_found_ = FoundClasses::NOT_FOUND;

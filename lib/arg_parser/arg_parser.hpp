@@ -15,7 +15,6 @@ class ArgParser {
   template<typename... ArgumentType>
   void registrate(ArgumentType&&... args);
 
-
   bool parse(std::vector<std::string_view>& argv);
   void ClearArguments();
 
@@ -24,6 +23,8 @@ class ArgParser {
 
   template<typename ValueType>
   auto GetMultiValue(std::string_view arg_name);
+
+  std::string GetDescriptions();
 
  private:
   template<typename ArgumentType>

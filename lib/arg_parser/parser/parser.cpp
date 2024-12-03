@@ -16,9 +16,18 @@ void ParserDevice::Run(std::vector<Argument>& args,
   for (auto&& arg : args) {
     if (arg.IsPositional()) {
       bool is_parse = true;
-      while (is_parse && pos_lex_beg != pos_lex_end) {
+      if (arg.IsMultivalue()) {
+        while (is_parse && pos_lex_beg != pos_lex_end) {
+          is_parse = arg.convert((*pos_lex_beg)->value_);
+          if (is_parse) {
+            ++pos_lex_beg;
+          }
+        }
+      } else {
         is_parse = arg.convert((*pos_lex_beg)->value_);
-        ++pos_lex_beg;
+        if (is_parse) {
+          ++pos_lex_beg;
+        }
       }
     } else {
       for (auto&& lexeme : lexemes_cont) {
