@@ -30,3 +30,8 @@
 *.exe
 *.out
 *.app
+
+# saintson custom ignores
+build/
+.clangd
+.cache/

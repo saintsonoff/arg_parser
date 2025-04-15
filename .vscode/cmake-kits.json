@@ -1,0 +1,11 @@
+[
+  {
+    "name": "saintson_custom_kit(сlang 19.1 | ninja multi | arch x86_64 | std 23)",
+    "compilers": {
+      "C": "X:\\TGRKIT\\builds\\llvm\\LLVM-19.1.0-rc4-Windows-X64\\bin\\clang.exe",
+      "CXX": "X:\\TGRKIT\\builds\\llvm\\LLVM-19.1.0-rc4-Windows-X64\\bin\\clang++.exe"
+    },
+    "toolchainFile": "X:\\TGRKIT\\builds\\llvm\\llvm-toolchain\\llvm-toolchain_x64.cmake",
+    "isTrusted": true
+  }
+]
